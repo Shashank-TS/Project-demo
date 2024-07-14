@@ -1,0 +1,101 @@
+import sys
+from OpenGL.GL import *
+from OpenGL.GLUT import *
+from OpenGL.GLU import *
+
+# Globals for object type and color
+object_type = 'square'
+color = (1.0, 0.0, 0.0)  # Default color red
+
+# Initial position and size for drawing
+start_x, start_y = 0, 0
+width, height = 100, 100
+drawing = False
+
+def init():
+    glClearColor(1.0, 1.0, 1.0, 1.0)  # White background
+
+def draw_square(x, y, size):
+    glBegin(GL_POLYGON)
+    glVertex2f(x, y)
+    glVertex2f(x + size, y)
+    glVertex2f(x + size, y + size)
+    glVertex2f(x, y + size)
+    glEnd()
+
+def draw_circle(x, y, radius):
+    glBegin(GL_POLYGON)
+    for i in range(360):
+        angle = 2 * 3.14159 * i / 360
+        glVertex2f(x + cos(angle) * radius, y + sin(angle) * radius)
+    glEnd()
+
+def display():
+    global object_type, color, start_x, start_y, width, height
+    glClear(GL_COLOR_BUFFER_BIT)
+
+    glColor3f(*color)
+    if object_type == 'square':
+        draw_square(start_x, start_y, width)
+    elif object_type == 'circle':
+        draw_circle(start_x, start_y, width / 2)
+
+    glFlush()
+
+def reshape(w, h):
+    glViewport(0, 0, w, h)
+    glMatrixMode(GL_PROJECTION)
+    glLoadIdentity()
+    gluOrtho2D(0.0, w, 0.0, h)
+    glMatrixMode(GL_MODELVIEW)
+    glLoadIdentity()
+
+def mouse(button, state, x, y):
+    global start_x, start_y, width, height, drawing
+    if button == GLUT_LEFT_BUTTON:
+        if state == GLUT_DOWN:
+            start_x, start_y = x, glutGet(GLUT_WINDOW_HEIGHT) - y
+            drawing = True
+        elif state == GLUT_UP:
+            drawing = False
+            width = x - start_x
+            height = (glutGet(GLUT_WINDOW_HEIGHT) - y) - start_y
+            glutPostRedisplay()
+
+def motion(x, y):
+    global width, height
+    if drawing:
+        width = x - start_x
+        height = (glutGet(GLUT_WINDOW_HEIGHT) - y) - start_y
+        glutPostRedisplay()
+
+def keyboard(key, x, y):
+    global object_type, color
+    if key == b's':
+        object_type = 'square'
+    elif key == b'c':
+        object_type = 'circle'
+    elif key == b'r':
+        color = (1.0, 0.0, 0.0)  # Red
+    elif key == b'g':
+        color = (0.0, 1.0, 0.0)  # Green
+    elif key == b'b':
+        color = (0.0, 0.0, 1.0)  # Blue
+    glutPostRedisplay()
+
+def main():
+    glutInit(sys.argv)
+    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB)
+    glutInitWindowSize(800, 600)
+    glutInitWindowPosition(100, 100)
+    glutCreateWindow(b"2D Objects with OpenGL")
+    init()
+    glutDisplayFunc(display)
+    glutReshapeFunc(reshape)
+    glutMouseFunc(mouse)
+    glutMotionFunc(motion)
+    glutKeyboardFunc(keyboard)
+    glutMainLoop()
+
+if __name__ == "__main__":
+    main()
